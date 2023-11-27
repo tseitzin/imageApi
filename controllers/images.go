@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"imageApi/models"
 	"net/http"
 
@@ -59,9 +60,12 @@ func FindImages(c *gin.Context) {
 // @Description  Takes a image JSON and store in DB. Return saved JSON.
 // @Tags         images
 // @Produce      json
-// @Param        image  body      models.Image  true  "Image JSON"
+// @Param        image body  models.Image  true  "Image Directory"
 // @Success      200   {object}  models.Image
 // @Router       /images [post]
+//
+//Add the imagename to the function call coming from the process images function
+//that has not been created yet
 func CreateImage(c *gin.Context) {
 	// Validate input
 	var input CreateImageInput
@@ -70,10 +74,12 @@ func CreateImage(c *gin.Context) {
 		return
 	}
 
+	var imageData = processImage(input)
+
 	// Create image
 	image := models.Image{
-		ImageFileName:    input.ImageFileName,
-		ImageDirLocation: input.ImageDirLocation,
+		ImageFileName:    imageData.ImageFileName,
+		ImageDirLocation: imageData.ImageDirLocation,
 		ImageDateTime:    input.ImageDateTime,
 		ImageYear:        input.ImageYear,
 		ImageMonth:       input.ImageMonth,
@@ -174,4 +180,19 @@ func UpdateImage(c *gin.Context) {
 	models.DB.Model(&image).Where("image_id = ?", c.Param("image_id")).Updates(&UpdateImageInput)
 
 	c.JSON(http.StatusOK, gin.H{"data": UpdateImageInput})
+}
+
+func processImage(t CreateImageInput) CreateImageInput {
+
+	var filename string
+
+	fmt.Println("Enter your image:")
+	fmt.Scanf("%s", &filename)
+
+	fmt.Println("You entered: ", filename)
+
+	t.ImageDirLocation = filename
+	t.ImageFileName = filename
+
+	return t
 }

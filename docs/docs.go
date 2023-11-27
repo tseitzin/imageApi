@@ -51,7 +51,7 @@ const docTemplate = `{
                 "summary": "Store a new image",
                 "parameters": [
                     {
-                        "description": "Image JSON",
+                        "description": "Image Directory",
                         "name": "image",
                         "in": "body",
                         "required": true,

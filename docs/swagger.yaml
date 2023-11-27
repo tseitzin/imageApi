@@ -56,7 +56,7 @@ paths:
     post:
       description: Takes a image JSON and store in DB. Return saved JSON.
       parameters:
-      - description: Image JSON
+      - description: Image Directory
         in: body
         name: image
         required: true
