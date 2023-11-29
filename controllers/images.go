@@ -3,8 +3,13 @@ package controllers
 import (
 	"fmt"
 	"imageApi/models"
+	"io"
+	"log"
 	"net/http"
+	"os"
+	"strings"
 
+	"github.com/barasher/go-exiftool"
 	"github.com/gin-gonic/gin"
 )
 
@@ -64,8 +69,8 @@ func FindImages(c *gin.Context) {
 // @Success      200   {object}  models.Image
 // @Router       /images [post]
 //
-//Add the imagename to the function call coming from the process images function
-//that has not been created yet
+// Add the imagename to the function call coming from the process images function
+// that has not been created yet
 func CreateImage(c *gin.Context) {
 	// Validate input
 	var input CreateImageInput
@@ -74,22 +79,26 @@ func CreateImage(c *gin.Context) {
 		return
 	}
 
-	var imageData = processImage(input)
+	imageData, err := processImage(input)
+
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	// Create image
 	image := models.Image{
 		ImageFileName:    imageData.ImageFileName,
 		ImageDirLocation: imageData.ImageDirLocation,
-		ImageDateTime:    input.ImageDateTime,
+		ImageDateTime:    imageData.ImageDateTime,
 		ImageYear:        input.ImageYear,
 		ImageMonth:       input.ImageMonth,
 		ImageDay:         input.ImageDay,
-		ImageWidth:       input.ImageWidth,
-		ImageHeight:      input.ImageHeight,
+		ImageWidth:       imageData.ImageWidth,
+		ImageHeight:      imageData.ImageHeight,
 		ImageLat:         input.ImageLat,
 		ImageLon:         input.ImageLon,
-		ImageSize:        input.ImageSize,
-		ImageType:        input.ImageType}
+		ImageSize:        imageData.ImageSize,
+		ImageType:        imageData.ImageType}
 
 	models.DB.Create(&image)
 
@@ -182,17 +191,85 @@ func UpdateImage(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{"data": UpdateImageInput})
 }
 
-func processImage(t CreateImageInput) CreateImageInput {
+func testImageFile(file *os.File) bool {
 
-	var filename string
+	resp, err := os.Open(file.Name())
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	fmt.Println("Enter your image:")
-	fmt.Scanf("%s", &filename)
+	defer resp.Close()
 
-	fmt.Println("You entered: ", filename)
+	// Read the response body as a byte slice
+	bytes, err := io.ReadAll(resp)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	t.ImageDirLocation = filename
-	t.ImageFileName = filename
+	mimeType := http.DetectContentType(bytes)
+	fmt.Println(mimeType) // image/png
 
-	return t
+	test := strings.Split(mimeType, "/")
+
+	fmt.Println(test)
+
+	if test[0] != "image" {
+		fmt.Println("**************************NOT AN IMAGE FILE************************")
+		return false
+	} else {
+		return true
+	}
+}
+
+func processImage(input CreateImageInput) (CreateImageInput, error) {
+
+	fileName := strings.Split(input.ImageDirLocation, `\`)
+	input.ImageFileName = fileName[len(fileName)-1]
+
+	// Open the image file
+	file, err := os.Open(input.ImageDirLocation)
+	if err != nil {
+		return input, fmt.Errorf("error opening file %s: %w", input.ImageDirLocation, err)
+	}
+	defer file.Close()
+
+	imageFile := testImageFile(file)
+	if !imageFile {
+		return input, fmt.Errorf("Not an image file for file %s", input.ImageDirLocation)
+	}
+
+	et, err := exiftool.NewExiftool()
+	if err != nil {
+		return input, fmt.Errorf("error decoding EXIF data for file %s: %w", input.ImageDirLocation, err)
+	}
+	defer et.Close()
+
+	fileInfos := et.ExtractMetadata(file.Name())
+
+	for _, fileInfo := range fileInfos {
+		if fileInfo.Err != nil {
+			fmt.Errorf("Error concerning %v: %v\n", fileInfo.File, fileInfo.Err)
+			continue
+		}
+
+		for k, v := range fileInfo.Fields {
+			//fmt.Printf("[%v] %v\n", k, v)
+
+			switch {
+			case k == "CreateDate":
+				input.ImageDateTime = v.(string)
+			case k == "FileType":
+				input.ImageType = v.(string)
+			case k == "ImageWidth":
+				input.ImageWidth = int(v.(float64))
+			case k == "ImageHeight":
+				input.ImageHeight = int(v.(float64))
+			case k == "ImageSize":
+				input.ImageSize = v.(string)
+			}
+
+		}
+	}
+
+	return input, nil
 }
