@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 
 	"github.com/barasher/go-exiftool"
@@ -90,9 +91,9 @@ func CreateImage(c *gin.Context) {
 		ImageFileName:    imageData.ImageFileName,
 		ImageDirLocation: imageData.ImageDirLocation,
 		ImageDateTime:    imageData.ImageDateTime,
-		ImageYear:        input.ImageYear,
-		ImageMonth:       input.ImageMonth,
-		ImageDay:         input.ImageDay,
+		ImageYear:        imageData.ImageYear,
+		ImageMonth:       imageData.ImageMonth,
+		ImageDay:         imageData.ImageDay,
 		ImageWidth:       imageData.ImageWidth,
 		ImageHeight:      imageData.ImageHeight,
 		ImageLat:         input.ImageLat,
@@ -253,7 +254,7 @@ func processImage(input CreateImageInput) (CreateImageInput, error) {
 		}
 
 		for k, v := range fileInfo.Fields {
-			//fmt.Printf("[%v] %v\n", k, v)
+			fmt.Printf("[%v] %v\n", k, v)
 
 			switch {
 			case k == "CreateDate":
@@ -270,6 +271,16 @@ func processImage(input CreateImageInput) (CreateImageInput, error) {
 
 		}
 	}
+
+	dateTimeSplit := strings.Split(input.ImageDateTime, " ")
+	dateSplit := strings.Split(dateTimeSplit[0], ":")
+
+	input.ImageYear, _ = strconv.Atoi(dateSplit[0])
+	input.ImageMonth, _ = strconv.Atoi(dateSplit[1])
+	input.ImageDay, _ = strconv.Atoi(dateSplit[2])
+
+	fmt.Println(dateSplit[2])
+	fmt.Println(input.ImageDay)
 
 	return input, nil
 }
