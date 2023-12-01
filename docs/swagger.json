@@ -173,6 +173,9 @@
                 "imageFileName": {
                     "type": "string"
                 },
+                "imageFileSize": {
+                    "type": "string"
+                },
                 "imageHeight": {
                     "type": "integer"
                 },
@@ -184,6 +187,9 @@
                 },
                 "imageLon": {
                     "type": "string"
+                },
+                "imageMegaPixels": {
+                    "type": "number"
                 },
                 "imageMonth": {
                     "type": "integer"

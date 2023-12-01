@@ -14,4 +14,6 @@ type Image struct {
 	ImageLon         string
 	ImageSize        string
 	ImageType        string
+	ImageMegaPixels  float64
+	ImageFileSize    string
 }

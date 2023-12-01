@@ -15,33 +15,37 @@ import (
 )
 
 type CreateImageInput struct {
-	ImageFileName    string `json:"imagefilename" binding:"required"`
-	ImageDateTime    string `json:"imagedatetime" binding:"required"`
-	ImageDirLocation string `json:"imagedirlocation" binding:"required"`
-	ImageYear        int    `json:"imageyear"`
-	ImageMonth       int    `json:"imagemonth"`
-	ImageDay         int    `json:"imageday"`
-	ImageWidth       int    `json:"imagewidth"`
-	ImageHeight      int    `json:"imageheight"`
-	ImageLat         string `json:"imagelat"`
-	ImageLon         string `json:"imagelon"`
-	ImageSize        string `json:"imagesize"`
-	ImageType        string `json:"imagetype"`
+	ImageFileName    string  `json:"imagefilename" binding:"required"`
+	ImageDateTime    string  `json:"imagedatetime" binding:"required"`
+	ImageDirLocation string  `json:"imagedirlocation" binding:"required"`
+	ImageYear        int     `json:"imageyear"`
+	ImageMonth       int     `json:"imagemonth"`
+	ImageDay         int     `json:"imageday"`
+	ImageWidth       int     `json:"imagewidth"`
+	ImageHeight      int     `json:"imageheight"`
+	ImageLat         string  `json:"imagelat"`
+	ImageLon         string  `json:"imagelon"`
+	ImageSize        string  `json:"imagesize"`
+	ImageType        string  `json:"imagetype"`
+	ImageMegaPixels  float64 `json:"imagemegapixels"`
+	ImageFileSize    string  `json:"imagefilesize"`
 }
 
 type UpdateImageInput struct {
-	ImageFileName    string `json:"imagefilename"`
-	ImageDateTime    string `json:"imagedatetime"`
-	ImageDirLocation string `json:"imagedirlocation"`
-	ImageYear        int    `json:"imageyear"`
-	ImageMonth       int    `json:"imagemonth"`
-	ImageDay         int    `json:"imageday"`
-	ImageWidth       int    `json:"imagewidth"`
-	ImageHeight      int    `json:"imageheight"`
-	ImageLat         string `json:"imagelat"`
-	ImageLon         string `json:"imagelon"`
-	ImageSize        string `json:"imagesize"`
-	ImageType        string `json:"imagetype"`
+	ImageFileName    string  `json:"imagefilename"`
+	ImageDateTime    string  `json:"imagedatetime"`
+	ImageDirLocation string  `json:"imagedirlocation"`
+	ImageYear        int     `json:"imageyear"`
+	ImageMonth       int     `json:"imagemonth"`
+	ImageDay         int     `json:"imageday"`
+	ImageWidth       int     `json:"imagewidth"`
+	ImageHeight      int     `json:"imageheight"`
+	ImageLat         string  `json:"imagelat"`
+	ImageLon         string  `json:"imagelon"`
+	ImageSize        string  `json:"imagesize"`
+	ImageType        string  `json:"imagetype"`
+	ImageMegaPixels  float64 `json:"imagemegapixels"`
+	ImageFileSize    string  `json:"imagefilesize"`
 }
 
 // GetImages responds with the list of all images as JSON.
@@ -99,7 +103,9 @@ func CreateImage(c *gin.Context) {
 		ImageLat:         input.ImageLat,
 		ImageLon:         input.ImageLon,
 		ImageSize:        imageData.ImageSize,
-		ImageType:        imageData.ImageType}
+		ImageType:        imageData.ImageType,
+		ImageMegaPixels:  imageData.ImageMegaPixels,
+		ImageFileSize:    imageData.ImageFileSize}
 
 	models.DB.Create(&image)
 
@@ -185,7 +191,9 @@ func UpdateImage(c *gin.Context) {
 		ImageLat:         input.ImageLat,
 		ImageLon:         input.ImageLon,
 		ImageSize:        input.ImageSize,
-		ImageType:        input.ImageType}
+		ImageType:        input.ImageType,
+		ImageMegaPixels:  input.ImageMegaPixels,
+		ImageFileSize:    input.ImageFileSize}
 
 	models.DB.Model(&image).Where("image_id = ?", c.Param("image_id")).Updates(&UpdateImageInput)
 
@@ -267,6 +275,10 @@ func processImage(input CreateImageInput) (CreateImageInput, error) {
 				input.ImageHeight = int(v.(float64))
 			case k == "ImageSize":
 				input.ImageSize = v.(string)
+			case k == "Megapixels":
+				input.ImageMegaPixels = v.(float64)
+			case k == "FileSize":
+				input.ImageFileSize = v.(string)
 			}
 
 		}
@@ -278,9 +290,6 @@ func processImage(input CreateImageInput) (CreateImageInput, error) {
 	input.ImageYear, _ = strconv.Atoi(dateSplit[0])
 	input.ImageMonth, _ = strconv.Atoi(dateSplit[1])
 	input.ImageDay, _ = strconv.Atoi(dateSplit[2])
-
-	fmt.Println(dateSplit[2])
-	fmt.Println(input.ImageDay)
 
 	return input, nil
 }

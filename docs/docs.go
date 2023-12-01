@@ -179,6 +179,9 @@ const docTemplate = `{
                 "imageFileName": {
                     "type": "string"
                 },
+                "imageFileSize": {
+                    "type": "string"
+                },
                 "imageHeight": {
                     "type": "integer"
                 },
@@ -190,6 +193,9 @@ const docTemplate = `{
                 },
                 "imageLon": {
                     "type": "string"
+                },
+                "imageMegaPixels": {
+                    "type": "number"
                 },
                 "imageMonth": {
                     "type": "integer"

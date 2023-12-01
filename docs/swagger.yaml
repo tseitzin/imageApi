@@ -10,6 +10,8 @@ definitions:
         type: string
       imageFileName:
         type: string
+      imageFileSize:
+        type: string
       imageHeight:
         type: integer
       imageID:
@@ -18,6 +20,8 @@ definitions:
         type: string
       imageLon:
         type: string
+      imageMegaPixels:
+        type: number
       imageMonth:
         type: integer
       imageSize:
